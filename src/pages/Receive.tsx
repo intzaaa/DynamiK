@@ -81,10 +81,12 @@ export default function Receive() {
             return <Text path="setup" />;
           } else if (!id.value) {
             return <Text path="waitCode" />;
-          } else if (!conn.value || !conn.value.open) {
+          } else if (!conn.value?.open) {
             return <Text path="waitConn" />;
           } else if (!url.value) {
             return <Text path="waitData" />;
+          } else if (!conn.value) {
+            return <Text path="waitScan" />;
           } else {
             return url.value;
           }
