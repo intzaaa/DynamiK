@@ -9,14 +9,37 @@ import setup_i18n from "./utils/i18n";
 import Send from "./pages/Send";
 import Receive from "./pages/Receive";
 
-const { Text, register } = setup_i18n("en-US", {
+const { Text, register } = setup_i18n("en", {
   send: "Send",
   receive: "Receive",
+  setup: "Setting up...",
+  waitCode: "Waiting for code...",
+  waitConn: "Waiting for connection...",
+  waitData: "Waiting for data...",
+  auto: "AUTO",
+  inputPlaceholder: "CODE",
 });
 
 register("zh", {
   send: "发送",
   receive: "接收",
+  setup: "正在设置...",
+  waitCode: "等待输入代码...",
+  waitConn: "等待连接...",
+  waitData: "等待数据...",
+  auto: "自动",
+  inputPlaceholder: "代码",
+});
+
+register("de", {
+  send: "Senden",
+  receive: "Empfangen",
+  setup: "Einrichtung...",
+  waitCode: "Warte auf Code...",
+  waitConn: "Warte auf Verbindung...",
+  waitData: "Warte auf Daten...",
+  auto: "AUTO",
+  inputPlaceholder: "CODE",
 });
 
 export { Text };

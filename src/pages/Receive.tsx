@@ -3,6 +3,7 @@ import { decode } from "base65536";
 import { DataConnection, Peer } from "peerjs";
 import { config } from "../utils/config";
 import { useEffect } from "preact/hooks";
+import { Text } from "..";
 
 const create_receiver_peer = () => {
   const peer = new Peer(config);
@@ -71,19 +72,19 @@ export default function Receive() {
           autoFocus
           type="text"
           class="w-full h-24 text-center text-xl text-mono border-none outline-none"
-          placeholder="CODE"
+          placeholder={Text({ path: "inputPlaceholder" }).raw}
         />
       </div>
       <div class="w-full h-0 grow text-4xl break-all font-mono p-8 overflow-clip dark:text-white flex flex-row justify-between items-center">
         {computed(() => {
           if (!peer.value) {
-            return "Setting up...";
+            return <Text path="setup" />;
           } else if (!id.value) {
-            return "Waiting for code...";
+            return <Text path="waitCode" />;
           } else if (!conn.value || !conn.value.open) {
-            return "Waiting for connection...";
+            return <Text path="waitConn" />;
           } else if (!url.value) {
-            return "Waiting for data...";
+            return <Text path="waitData" />;
           } else {
             return url.value;
           }
@@ -98,7 +99,7 @@ export default function Receive() {
         <div
           onClick={() => (auto.value = !auto.peek())}
           class={`text-[50px] h-full w-0 grow flex flex-col items-center justify-center font-mono transition-colors duration-300" ${auto.value ? "bg-green-500" : ""}`}>
-          AUTO
+          <Text path="auto" />
         </div>
       </div>
     </>

@@ -43,7 +43,8 @@ export default function setup<T extends object, L extends string>(fallback_lang:
     };
 
     const selected = match(user_langs, fallback_lang, database_langs);
-    return <>{deep_value(database[selected]!, path)}</>;
+    const value = deep_value(database[selected]!, path);
+    return Object.assign(<>{value}</>, { raw: value as unknown as string });
   };
 
   return { register, Text };

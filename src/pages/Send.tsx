@@ -6,6 +6,7 @@ import { Peer } from "peerjs";
 import { encode } from "base65536";
 import { split } from "../utils/split";
 import { config } from "../utils/config";
+import { Text } from "..";
 
 const request_camera = async (): Promise<Maybe<MediaStream>> => {
   try {
@@ -165,7 +166,7 @@ export default function Send() {
                   ))}
                 </>
               ) : (
-                <>Setting up...</>
+                <Text path="setup" />
               )
             )}
           </div>
