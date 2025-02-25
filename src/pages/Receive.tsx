@@ -20,6 +20,7 @@ export default function Receive() {
   const id = signal<string | null>(null);
   const peer = signal<Peer | null>(null);
   const conn = signal<DataConnection | null>(null);
+  const state = signal<boolean>(false);
   const url = signal<string | null>(null);
   const auto = signal<boolean>(localStorage.getItem("auto") === "true");
 
@@ -38,9 +39,18 @@ export default function Receive() {
       conn.peek()?.close();
 
       const _conn = peer.value.connect(id.value);
+      _conn.on("open", () => {
+        state.value = true;
+        console.info("Connected to", _conn.peer);
+      });
       _conn.on("data", (data: any) => {
         url.value = String(data);
         console.info(data);
+      });
+      _conn.on("close", () => {
+        conn.value = null;
+        state.value = false;
+        console.info("Disconnected");
       });
 
       conn.value = _conn;
@@ -83,7 +93,7 @@ export default function Receive() {
             return <Text path="setup" />;
           } else if (!id.value) {
             return <Text path="waitCode" />;
-          } else if (!conn.value?.open) {
+          } else if (!state.value) {
             return <Text path="waitConn" />;
           } else {
             return <Text path="waitData" />;

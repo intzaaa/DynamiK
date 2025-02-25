@@ -54,9 +54,9 @@ export default function Send() {
   effect(() => {
     if (peer.value) {
       peer.value.on("connection", (conn) => {
-        console.info("Connected to", conn.peer);
-
         conn.on("open", () => {
+          console.info("Connected to", conn.peer);
+
           const dispose = effect(() => {
             if (scanned.value) {
               conn.send(scanned.value);
