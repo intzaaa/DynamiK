@@ -80,7 +80,7 @@ export default function Receive() {
             return "Setting up...";
           } else if (!id.value) {
             return "Waiting for code...";
-          } else if (!conn.value) {
+          } else if (!conn.value || !conn.value.open) {
             return "Waiting for connection...";
           } else if (!url.value) {
             return "Waiting for data...";
