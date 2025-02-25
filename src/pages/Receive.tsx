@@ -72,23 +72,21 @@ export default function Receive() {
           autoFocus
           type="text"
           class="w-full h-24 text-center text-xl text-mono border-none outline-none"
-          placeholder={Text({ path: "inputPlaceholder" }).raw}
+          placeholder={Text({ path: "codeInput" }).raw}
         />
       </div>
       <div class="w-full h-0 grow text-4xl break-all font-mono p-8 overflow-clip dark:text-white flex flex-row justify-between items-center">
         {computed(() => {
-          if (!peer.value) {
+          if (url.value) {
+            return url.value;
+          } else if (!peer.value) {
             return <Text path="setup" />;
           } else if (!id.value) {
             return <Text path="waitCode" />;
           } else if (!conn.value?.open) {
             return <Text path="waitConn" />;
-          } else if (!url.value) {
-            return <Text path="waitData" />;
-          } else if (!conn.value) {
-            return <Text path="waitScan" />;
           } else {
-            return url.value;
+            return <Text path="waitData" />;
           }
         })}
       </div>

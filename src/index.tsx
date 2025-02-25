@@ -16,7 +16,6 @@ const { Text, register } = setup_i18n("en", {
   waitCode: "Waiting for code...",
   waitConn: "Waiting for connection...",
   waitData: "Waiting for data...",
-  waitScan: "Waiting for scan...",
   auto: "AUTO",
   codeInput: "CODE",
 });
@@ -28,7 +27,6 @@ register("zh", {
   waitCode: "等待输入代码...",
   waitConn: "等待连接...",
   waitData: "等待数据...",
-  waitScan: "等待扫描...",
   auto: "自动",
   codeInput: "代码",
 });
@@ -40,7 +38,6 @@ register("de", {
   waitCode: "Warte auf Code...",
   waitConn: "Warte auf Verbindung...",
   waitData: "Warte auf Daten...",
-  waitScan: "Warte auf Scan...",
   auto: "AUTO",
   codeInput: "CODE",
 });
