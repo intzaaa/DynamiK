@@ -55,17 +55,13 @@ export default function Send() {
       peer.value.on("connection", (conn) => {
         console.info("Connected to", conn.peer);
 
-        const send = () => {
+        const dispose = effect(() => {
           if (scanned.value) {
             conn.send(scanned.value);
 
             console.info("Send to", conn.peer);
           }
-        };
-
-        send();
-
-        const dispose = effect(send);
+        });
 
         conn.on("close", dispose);
       });

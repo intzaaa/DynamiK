@@ -74,14 +74,14 @@ export default function Receive() {
       </div>
       <div class="w-full h-0 grow text-4xl break-all font-mono p-8 overflow-clip dark:text-white flex flex-row justify-between items-center">
         {computed(() => {
-          if (!code.value) {
-            return "Waiting for code...";
-          } else if (url.value) {
-            return url.value;
-          } else if (peer.value) {
+          if (!peer.value) {
+            return "Setting up...";
+          } else if (!conn.value) {
+            return "Waiting for connection...";
+          } else if (!url.value) {
             return "Waiting for data...";
           } else {
-            return "Connecting...";
+            return url.value;
           }
         })}
       </div>
