@@ -99,7 +99,7 @@ export default function Send() {
             console.info(scanned.value);
           }
         } catch {}
-      }, 500);
+      }, 100);
     }
   });
 
