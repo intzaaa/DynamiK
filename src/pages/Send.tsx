@@ -124,6 +124,11 @@ export default function Send() {
     });
 
     return () => {
+      media
+        .peek()
+        ?.getTracks()
+        .forEach((track) => track.stop());
+
       peer.peek()?.destroy();
 
       console.info("Destroyed");
