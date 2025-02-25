@@ -16,7 +16,7 @@ const create_receiver_peer = () => {
 };
 
 export default function Receive() {
-  const code = signal<string | null>(null);
+  const id = signal<string | null>(null);
   const peer = signal<Peer | null>(null);
   const conn = signal<DataConnection | null>(null);
   const url = signal<string | null>(null);
@@ -33,14 +33,16 @@ export default function Receive() {
   });
 
   effect(() => {
-    if (code.value && peer.value) {
+    if (id.value && peer.value) {
       conn.peek()?.close();
 
-      conn.value = peer.value.connect(code.value);
-      conn.value.on("data", (data: any) => {
+      const _conn = peer.value.connect(id.value);
+      _conn.on("data", (data: any) => {
         url.value = String(data);
         console.info(data);
       });
+
+      conn.value = _conn;
     }
   });
 
@@ -64,7 +66,7 @@ export default function Receive() {
             const decoded = decode((e.target as HTMLInputElement).value);
 
             console.info(decoded);
-            code.value = new TextDecoder().decode(decoded);
+            id.value = new TextDecoder().decode(decoded);
           }}
           autoFocus
           type="text"
@@ -76,6 +78,8 @@ export default function Receive() {
         {computed(() => {
           if (!peer.value) {
             return "Setting up...";
+          } else if (!id.value) {
+            return "Waiting for code...";
           } else if (!conn.value) {
             return "Waiting for connection...";
           } else if (!url.value) {
@@ -92,7 +96,7 @@ export default function Receive() {
           {"<"}
         </a>
         <div
-          onClick={() => (auto.value = !auto.value)}
+          onClick={() => (auto.value = !auto.peek())}
           class={`text-[50px] h-full w-0 grow flex flex-col items-center justify-center font-mono transition-colors duration-300" ${auto.value ? "bg-green-500" : ""}`}>
           AUTO
         </div>
