@@ -4,6 +4,7 @@ import { DataConnection, Peer } from "peerjs";
 import { config } from "../utils/config";
 import { useEffect } from "preact/hooks";
 import { Text } from "..";
+import { writeBarcode } from "zxing-wasm/writer";
 
 const create_receiver_peer = () => {
   const peer = new Peer(config);
@@ -16,12 +17,14 @@ const create_receiver_peer = () => {
   });
 };
 
-export default function Receive() {
-  const id = signal<string | null>(null);
-  const peer = signal<Peer | null>(null);
-  const conn = signal<DataConnection | null>(null);
+export default function Receiver() {
+  const id = signal<string | undefined>(undefined);
+  const peer = signal<Peer | undefined>(undefined);
+  const conn = signal<DataConnection | undefined>(undefined);
   const state = signal<boolean>(false);
-  const url = signal<string | null>(null);
+  const url = signal<string | undefined>(undefined);
+  let count = 0;
+  const svg = signal<string | undefined>(undefined);
   const auto = signal<boolean>(localStorage.getItem("auto") === "true");
 
   effect(() => {
@@ -35,6 +38,17 @@ export default function Receive() {
   });
 
   effect(() => {
+    if (url.value) {
+      count++;
+
+      writeBarcode(url.value, {}).then((result) => {
+        svg.value && URL.revokeObjectURL(svg.value);
+        svg.value = URL.createObjectURL(new Blob([result.svg], { type: "image/svg+xml" }));
+      });
+    }
+  });
+
+  effect(() => {
     if (id.value && peer.value) {
       conn.peek()?.close();
 
@@ -43,12 +57,13 @@ export default function Receive() {
         state.value = true;
         console.info("Connected to", _conn.peer);
       });
-      _conn.on("data", (data: any) => {
+      _conn.on("data", async (data: any) => {
         url.value = String(data);
+
         console.info(data);
       });
       _conn.on("close", () => {
-        conn.value = null;
+        conn.value = undefined;
         state.value = false;
         console.info("Disconnected");
       });
@@ -85,10 +100,19 @@ export default function Receive() {
           placeholder={Text({ path: "codeInput" }).raw}
         />
       </div>
-      <div class="w-full h-0 grow text-4xl break-all font-mono p-8 overflow-clip dark:text-white flex flex-row justify-between items-center">
+      <div
+        onClick={() => {
+          url.value && navigator.clipboard.writeText(url.value);
+        }}
+        class={`w-full h-0 grow text-4xl break-all font-mono p-2 overflow-clip dark:text-white flex flex-wrap flex-row items-center justify-between`}>
         {computed(() => {
           if (url.value) {
-            return url.value;
+            return (
+              <img
+                src={svg.value}
+                alt={url.value}
+                class={`w-full h-full object-contain ${count % 2 === 0 ? "object-right-bottom" : "object-left-top"}`}></img>
+            );
           } else if (!peer.value) {
             return <Text path="setup" />;
           } else if (!id.value) {

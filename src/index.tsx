@@ -6,8 +6,8 @@ import { LocationProvider, Router, Route } from "preact-iso";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import setup_i18n from "./utils/i18n";
-import Send from "./pages/Send";
-import Receive from "./pages/Receive";
+import Sender from "./pages/Sender";
+import Receiver from "./pages/Receiver";
 
 const { Text, register } = setup_i18n("en", {
   send: "Send",
@@ -55,11 +55,11 @@ export function App() {
           />
           <Route
             path="/send"
-            component={Send}
+            component={Sender}
           />
           <Route
             path="/receive"
-            component={Receive}
+            component={Receiver}
           />
           <Route
             default
