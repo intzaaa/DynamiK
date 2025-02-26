@@ -154,7 +154,7 @@ export default function Sender() {
         <div class="h-full w-0 grow flex flex-col items-center justify-center">
           <div
             onClick={() => navigator.clipboard.writeText(peer_id_encoded.value)}
-            class="h-0 grow text-2xl select-none text-center flex items-center justify-center">
+            class="h-0 grow text-2xl select-none text-center flex items-center justify-center cursor-pointer">
             {computed(() =>
               peer_id_encoded.value ? (
                 <>

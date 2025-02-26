@@ -111,7 +111,7 @@ export default function Receiver() {
               <img
                 src={svg.value}
                 alt={url.value}
-                class={`w-full h-full object-contain ${count % 2 === 0 ? "object-right-bottom" : "object-left-top"}`}></img>
+                class={`w-full h-full object-contain cursor-pointer ${count % 2 === 0 ? "object-right-bottom" : "object-left-top"}`}></img>
             );
           } else if (!peer.value) {
             return <Text path="setup" />;

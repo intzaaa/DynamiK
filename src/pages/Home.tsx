@@ -18,7 +18,7 @@ export default function Home() {
         },
       ].map(({ text, route }) => (
         <div
-          class="w-full h-0 flex justify-center items-center grow text-4xl"
+          class="w-full h-0 flex justify-center items-center grow text-4xl cursor-pointer"
           onClick={() => location.route(route)}>
           {text}
         </div>
