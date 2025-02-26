@@ -69,10 +69,14 @@ export default function Sender() {
             }
           });
 
-          conn.on("close", () => {
-            peerCount.value--;
-            dispose();
-          });
+          conn.peerConnection.onconnectionstatechange = (e) => {
+            const state = (e.target as RTCPeerConnection)?.connectionState;
+            if (state === "disconnected" || state === "failed" || state === "closed") {
+              conn.close();
+              peerCount.value--;
+              dispose();
+            }
+          };
         });
       });
 
