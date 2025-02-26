@@ -63,9 +63,15 @@ export default function Sender() {
 
           const dispose = effect(() => {
             if (scannedData.value) {
-              conn.send(scannedData.value);
+              conn.send(scannedData.value)?.then(() => {
+                console.info("Sent to", conn.peer);
+              });
+              conn.send(scannedData.value)?.then(() => {
+                console.info("Sent to", conn.peer);
+              });
 
-              console.info("Send to", conn.peer);
+              console.info("Sending to", conn.peer);
+              console.info("Sending to", conn.peer);
             }
           });
 
@@ -74,6 +80,10 @@ export default function Sender() {
               conn.close();
               dispose();
               connCount.value--;
+
+              console.info("Closed", conn.peer);
+
+              console.info("Closed", conn.peer);
             }
           });
         });
@@ -144,26 +154,23 @@ export default function Sender() {
     createSenderPeer().then(async (_peer) => {
       currentPeer.value = _peer;
 
-      peerUrlSvg.value = URL.createObjectURL(
-        new Blob(
-          [
-            (
-              await writeBarcode(peerUrl.value!, {
-                format: "QRCode",
-                ecLevel: "H",
-              })
-            ).svg,
-          ],
-          { type: "image/svg+xml" }
-        )
-      );
+      const blob = (
+        await writeBarcode(peerUrl.value!, {
+          format: "QRCode",
+          ecLevel: "H",
+        })
+      ).image!;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        peerUrlSvg.value = reader.result as string;
+      };
+      reader.readAsDataURL(blob);
     });
 
     return () => {
       effect(() => {
         mediaStream.value?.getTracks().forEach((track) => track.stop());
-
-        peerUrlSvg.value && URL.revokeObjectURL(peerUrlSvg.value);
 
         currentPeer.value?.destroy();
 
@@ -188,23 +195,26 @@ export default function Sender() {
           {"<"}
         </a>
         <div class="h-full w-0 grow flex flex-col items-center justify-center">
-          <div
-            onClick={() => peerUrl.value && navigator.clipboard.writeText(peerUrl.value)}
-            class="h-0 grow font-mono text-center flex flex-col items-center justify-center cursor-pointer">
+          <div class="w-full h-0 grow font-mono text-center flex flex-col items-center justify-center cursor-pointer">
             {computed(() =>
               currentPeer.value?.id ? (
                 <>
                   <div class="w-full h-full flex flex-row items-center justify-between">
                     <img
                       src={peerUrlSvg.value}
+                      style={{
+                        imageRendering: "pixelated",
+                      }}
                       class="h-full w-auto aspect-square"></img>
-                    <div class="text-[80px] overflow-clip">{connCount}</div>
+                    <div class="text-[80px] overflow-clip px-4">{connCount}</div>
                   </div>
                   <a
                     class="text-xs"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
+
+                      navigator.clipboard.writeText(e.currentTarget.href);
                     }}
                     href={peerUrl.value}>
                     {currentPeer.value.id}
