@@ -5,6 +5,7 @@ import { config } from "../utils/config";
 import { useEffect } from "preact/hooks";
 import { Text } from "..";
 import { writeBarcode } from "zxing-wasm";
+import { alarm } from "../utils/alarm";
 
 const create_receiver_peer = () => {
   const peer = new Peer(config);
@@ -25,17 +26,6 @@ export default function Receiver() {
   const url = signal<string | undefined>(undefined);
   let count = 0;
   const svg = signal<string | undefined>(undefined);
-  const auto = signal<boolean>(localStorage.getItem("auto") === "true");
-
-  effect(() => {
-    if (auto.value && url.value) {
-      window.open(url.value, "_blank");
-    }
-  });
-
-  effect(() => {
-    localStorage.setItem("auto", String(auto.value));
-  });
 
   effect(() => {
     if (url.value) {
@@ -45,6 +35,7 @@ export default function Receiver() {
       }).then((result) => {
         count++;
 
+        alarm();
         svg.value && URL.revokeObjectURL(svg.value);
         svg.value = URL.createObjectURL(new Blob([result.svg], { type: "image/svg+xml" }));
       });
@@ -133,11 +124,6 @@ export default function Receiver() {
           href="/">
           {"<"}
         </a>
-        <div
-          onClick={() => (auto.value = !auto.peek())}
-          class={`text-[50px] h-full select-none cursor-pointer w-0 grow flex flex-col items-center justify-center font-mono transition-colors duration-300" ${auto.value ? "bg-green-500" : ""}`}>
-          <Text path="auto" />
-        </div>
       </div>
     </>
   );

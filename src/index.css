@@ -1,3 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes alarm {
+  0% {
+    @apply bg-transparent;
+  }
+  50% {
+    @apply bg-green-500;
+  }
+  100% {
+    @apply bg-transparent;
+  }
+}
+
+.alarm {
+  animation: alarm 0.3s ease-in-out;
+}
+
+.main {
+  width: 100%;
+  height: 100vh; /* For browsers that don't support CSS variables */
+  height: calc(var(--1dvh, 1vh) * 100); /* This is the "polyfill" */
+  height: 100dvh; /* This is for future browsers that support svh, dvh and lvh viewport units */
+}

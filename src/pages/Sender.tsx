@@ -7,6 +7,7 @@ import { encode } from "base65536";
 import { split } from "../utils/split";
 import { config } from "../utils/config";
 import { Text } from "..";
+import { alarm } from "../utils/alarm";
 
 const request_camera = async (): Promise<Maybe<MediaStream>> => {
   try {
@@ -104,7 +105,10 @@ export default function Sender() {
   });
 
   effect(() => {
-    scanned.value && navigator.vibrate([2, 5, 10, 3, 2]);
+    if (scanned.value) {
+      navigator.vibrate([2, 5, 10, 3, 2]);
+      alarm();
+    }
   });
 
   effect(() => {
