@@ -18,7 +18,7 @@ const createReceiverPeer = () => {
 };
 
 export default function Receiver() {
-  const senderId = signal<string | undefined>(new URLSearchParams(location.search).get("id") ?? undefined);
+  const senderId = signal<string | undefined>(undefined);
   const peer = signal<Peer | undefined>(undefined);
   const currentConnection = signal<DataConnection | undefined>(undefined);
   const connectionState = signal<"idle" | "failed" | "connected">("idle");
@@ -75,6 +75,8 @@ export default function Receiver() {
   });
 
   useEffect(() => {
+    senderId.value = new URLSearchParams(location.search).get("id") ?? undefined;
+
     createReceiverPeer().then((_peer) => {
       peer.value = _peer;
     });
@@ -91,7 +93,7 @@ export default function Receiver() {
     <>
       <div>
         <input
-          onLoad={(e) => (e.currentTarget.value = senderId.value ?? "")}
+          value={senderId}
           onInput={(e) => (senderId.value = e.currentTarget.value)}
           autoFocus
           type="text"
