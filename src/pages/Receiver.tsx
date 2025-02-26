@@ -32,11 +32,13 @@ export default function Receiver() {
         format: "QRCode",
         ecLevel: "M",
       }).then((result) => {
-        count++;
-
-        alarm();
         dataUrlSvg.value && URL.revokeObjectURL(dataUrlSvg.value);
         dataUrlSvg.value = URL.createObjectURL(new Blob([result.svg], { type: "image/svg+xml" }));
+
+        setTimeout(() => {
+          count++;
+          alarm();
+        }, 10);
       });
     }
   });
@@ -45,17 +47,17 @@ export default function Receiver() {
     if (senderId.value && peer.value) {
       currentConnection.peek()?.close();
 
-      const _conn = peer.value.connect(senderId.value);
-      _conn.on("open", () => {
+      const conn = peer.value.connect(senderId.value);
+      conn.on("open", () => {
         isConnected.value = true;
-        console.info("Connected to", _conn.peer);
+        console.info("Connected to", conn.peer);
       });
-      _conn.on("data", async (data: any) => {
+      conn.on("data", async (data: any) => {
         dataUrl.value = String(data);
         console.info(data);
       });
 
-      currentConnection.value = _conn;
+      currentConnection.value = conn;
     }
   });
 

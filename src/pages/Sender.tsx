@@ -120,7 +120,6 @@ export default function Sender() {
 
   effect(() => {
     if (scannedData.value) {
-      navigator.vibrate([10, 5, 3]);
       alarm();
     }
   });
