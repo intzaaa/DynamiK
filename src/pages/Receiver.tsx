@@ -21,7 +21,7 @@ export default function Receiver() {
   const senderId = signal<string | undefined>(new URLSearchParams(location.search).get("id") ?? undefined);
   const peer = signal<Peer | undefined>(undefined);
   const currentConnection = signal<DataConnection | undefined>(undefined);
-  const isConnected = signal<boolean>(false);
+  const connectionState = signal<"idle" | "failed" | "connected">("idle");
   const dataUrl = signal<string | undefined>(undefined);
   let count = 0;
   const dataUrlSvg = signal<string | undefined>(undefined);
@@ -45,16 +45,29 @@ export default function Receiver() {
 
   effect(() => {
     if (senderId.value && peer.value) {
-      currentConnection.peek()?.close();
+      if (currentConnection.peek()) {
+        console.info("Closing", currentConnection.peek()?.peer);
+        currentConnection.peek()?.close();
+      }
+
+      console.info("Connecting to", senderId.value);
 
       const conn = peer.value.connect(senderId.value);
       conn.on("open", () => {
-        isConnected.value = true;
+        connectionState.value = "connected";
         console.info("Connected to", conn.peer);
       });
       conn.on("data", async (data: any) => {
         dataUrl.value = String(data);
         console.info(data);
+      });
+      conn.on("close", () => {
+        connectionState.value = "idle";
+        console.info("Closed", conn.peer);
+      });
+      conn.on("error", (err) => {
+        connectionState.value = "failed";
+        console.error(err);
       });
 
       currentConnection.value = conn;
@@ -78,7 +91,7 @@ export default function Receiver() {
     <>
       <div>
         <input
-          value={senderId.value}
+          onLoad={(e) => (e.currentTarget.value = senderId.value ?? "")}
           onInput={(e) => (senderId.value = e.currentTarget.value)}
           autoFocus
           type="text"
@@ -103,7 +116,7 @@ export default function Receiver() {
             return <Text path="setup" />;
           } else if (!senderId.value) {
             return <Text path="waitCode" />;
-          } else if (!isConnected.value) {
+          } else if (connectionState.value === "idle") {
             return <Text path="waitConn" />;
           } else {
             return <Text path="waitData" />;
