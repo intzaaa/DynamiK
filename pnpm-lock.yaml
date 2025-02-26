@@ -20,6 +20,9 @@ importers:
       base65536:
         specifier: ^4.0.3
         version: 4.0.3
+      image-capture:
+        specifier: ^0.4.0
+        version: 0.4.0
       large-small-dynamic-viewport-units-polyfill:
         specifier: ^0.1.1
         version: 0.1.1
@@ -1684,6 +1687,9 @@ packages:
   ignore@5.3.2:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
     engines: {node: '>= 4'}
+
+  image-capture@0.4.0:
+    resolution: {integrity: sha512-6RWTfqC4ij0AldG+6sQ51XSHTSbwfqMSjVl1GtwNBzbW4UrcfGZeB1Kn749BccvtLb04g5+jSTf1D7q3qHcxpA==}
 
   import-fresh@3.3.1:
     resolution: {integrity: sha512-TR3KfrTZTYLPB6jUjfx6MF9WcWrHL9su5TObK4ZkYgBdWKPOFoSoQIdEuTuR82pmtxH2spWG9h6etwfr1pLBqQ==}
@@ -4457,6 +4463,8 @@ snapshots:
   he@1.2.0: {}
 
   ignore@5.3.2: {}
+
+  image-capture@0.4.0: {}
 
   import-fresh@3.3.1:
     dependencies:

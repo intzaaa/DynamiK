@@ -4,10 +4,11 @@ import { signal, effect, computed } from "@preact/signals";
 import { readBarcodes } from "zxing-wasm";
 import { Peer } from "peerjs";
 import { encode } from "base65536";
-import { split } from "../utils/split";
 import { config } from "../utils/config";
 import { Text } from "..";
 import { alarm } from "../utils/alarm";
+import { encoder } from "../utils/text";
+import { writeBarcode } from "zxing-wasm/writer";
 
 const request_camera = async (): Promise<Maybe<MediaStream>> => {
   try {
@@ -46,17 +47,20 @@ const create_sender_peer = () => {
 
 export default function Sender() {
   const video = useRef<HTMLVideoElement>(null);
-  const media = signal<MediaStream | null>(null);
-  const scanned = signal<string | null>(null);
+  const media = signal<MediaStream | undefined>(undefined);
+  const scanned = signal<string | undefined>(undefined);
 
-  const peer = signal<Peer | null>(null);
-  const peer_id_encoded = computed(() => (peer.value ? encode(new TextEncoder().encode(peer.value.id)) : ""));
+  const peer = signal<Peer | undefined>(undefined);
+  const peer_id_encoded = computed(() => (peer.value ? encode(encoder.encode(peer.value.id)) : ""));
+  const peer_id_svg = signal<string | undefined>(undefined);
+  const peer_count = signal<number>(0);
 
   effect(() => {
     if (peer.value) {
       peer.value.on("connection", (conn) => {
         conn.on("open", () => {
           console.info("Connected to", conn.peer);
+          peer_count.value++;
 
           const dispose = effect(() => {
             if (scanned.value) {
@@ -66,7 +70,10 @@ export default function Sender() {
             }
           });
 
-          conn.on("close", dispose);
+          conn.on("close", () => {
+            dispose();
+            peer_count.value--;
+          });
         });
       });
     }
@@ -127,8 +134,22 @@ export default function Sender() {
       video.current!.play();
     });
 
-    create_sender_peer().then((_peer) => {
+    create_sender_peer().then(async (_peer) => {
       peer.value = _peer;
+
+      peer_id_svg.value = URL.createObjectURL(
+        new Blob(
+          [
+            (
+              await writeBarcode(peer_id_encoded.value!, {
+                format: "QRCode",
+                ecLevel: "H",
+              })
+            ).svg,
+          ],
+          { type: "image/svg+xml" }
+        )
+      );
     });
 
     return () => {
@@ -136,6 +157,8 @@ export default function Sender() {
         .peek()
         ?.getTracks()
         .forEach((track) => track.stop());
+
+      peer_id_svg.value && URL.revokeObjectURL(peer_id_svg.value);
 
       peer.peek()?.destroy();
 
@@ -161,19 +184,22 @@ export default function Sender() {
         <div class="h-full w-0 grow flex flex-col items-center justify-center">
           <div
             onClick={() => navigator.clipboard.writeText(peer_id_encoded.value)}
-            class="h-0 grow text-2xl select-none text-center flex items-center justify-center cursor-pointer">
+            class="h-0 grow select-none font-mono text-center flex flex-col items-center justify-center cursor-pointer">
             {computed(() =>
               peer_id_encoded.value ? (
                 <>
-                  {split(peer_id_encoded.value, 9).map((s) => (
-                    <>
-                      {s}
-                      <br></br>
-                    </>
-                  ))}
+                  <div class="w-full h-full flex flex-row items-center justify-between">
+                    <img
+                      src={peer_id_svg.value}
+                      class="h-full w-auto aspect-square"></img>
+                    <div class="text-[80px] overflow-clip">{peer_count}</div>
+                  </div>
+                  <div class="text-xs">{peer_id_encoded.value}</div>
                 </>
               ) : (
-                <Text path="setup" />
+                <div class="text-4xl">
+                  <Text path="setup" />
+                </div>
               )
             )}
           </div>

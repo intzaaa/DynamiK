@@ -6,6 +6,7 @@ import { useEffect } from "preact/hooks";
 import { Text } from "..";
 import { writeBarcode } from "zxing-wasm";
 import { alarm } from "../utils/alarm";
+import { decoder } from "../utils/text";
 
 const create_receiver_peer = () => {
   const peer = new Peer(config);
@@ -73,6 +74,7 @@ export default function Receiver() {
 
     return () => {
       peer.peek()?.destroy();
+      svg.value && URL.revokeObjectURL(svg.value);
 
       console.info("Destroyed");
     };
@@ -86,11 +88,11 @@ export default function Receiver() {
             const decoded = decode((e.target as HTMLInputElement).value);
 
             console.info(decoded);
-            id.value = new TextDecoder().decode(decoded);
+            id.value = decoder.decode(decoded);
           }}
           autoFocus
           type="text"
-          class="w-full h-24 text-center text-xl text-mono border-none outline-none"
+          class="w-full h-24 text-center text-xl text-mono border-none outline-none bg-transparent"
           placeholder={Text({ path: "codeInput" }).raw}
         />
       </div>

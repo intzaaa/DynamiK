@@ -11,6 +11,7 @@
     "@preact/signals": "^2.0.1",
     "@vitejs/plugin-legacy": "^6.0.2",
     "base65536": "^4.0.3",
+    "image-capture": "^0.4.0",
     "large-small-dynamic-viewport-units-polyfill": "^0.1.1",
     "peerjs": "^1.5.4",
     "preact": "^10.25.3",

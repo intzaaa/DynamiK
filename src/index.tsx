@@ -1,5 +1,6 @@
 import "./index.css";
 import "large-small-dynamic-viewport-units-polyfill";
+import "image-capture";
 
 import { render } from "preact";
 import { LocationProvider, Router, Route } from "preact-iso";

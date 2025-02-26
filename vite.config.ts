@@ -14,7 +14,7 @@ export default defineConfig({
 	plugins: [
 		basicSsl(),
 		legacy({
-			targets: ["IE 11"],
+			targets: ["IE 11", "firefox 40"],
 		}),
 		preact({
 			prefreshEnabled: false,

@@ -1,7 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-
     "lib": ["ESNext", "DOM"],
 
     "target": "ES2020",
