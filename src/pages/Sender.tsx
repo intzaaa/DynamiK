@@ -69,15 +69,12 @@ export default function Sender() {
             }
           });
 
-          conn.on("close", () => {
-            dispose();
-            connCount.value--;
-          });
-
-          conn.on("error", () => {
-            conn.close();
-            connCount.value--;
-            dispose();
+          conn.peerConnection.addEventListener("connectionstatechange", () => {
+            if (conn.peerConnection.connectionState !== "connected") {
+              conn.close();
+              dispose();
+              connCount.value--;
+            }
           });
         });
       });

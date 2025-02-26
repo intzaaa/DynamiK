@@ -26,7 +26,7 @@ register("zh", {
   setup: "正在设置...",
   waitCode: "等待输入代码...",
   tryConn: "尝试连接...",
-  receiveReady: "已经准备接收...",
+  receiveReady: "已准备好接收...",
   connInterrupt: "连接中断",
   codePlaceholder: "配对码",
 });
