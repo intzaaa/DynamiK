@@ -4,7 +4,7 @@ import { DataConnection, Peer } from "peerjs";
 import { config } from "../utils/config";
 import { useEffect } from "preact/hooks";
 import { Text } from "..";
-import { writeBarcode } from "zxing-wasm/writer";
+import { writeBarcode } from "zxing-wasm";
 
 const create_receiver_peer = () => {
   const peer = new Peer(config);
@@ -39,9 +39,12 @@ export default function Receiver() {
 
   effect(() => {
     if (url.value) {
-      count++;
+      writeBarcode(url.value, {
+        format: "QRCode",
+        ecLevel: "M",
+      }).then((result) => {
+        count++;
 
-      writeBarcode(url.value, {}).then((result) => {
         svg.value && URL.revokeObjectURL(svg.value);
         svg.value = URL.createObjectURL(new Blob([result.svg], { type: "image/svg+xml" }));
       });
@@ -132,7 +135,7 @@ export default function Receiver() {
         </a>
         <div
           onClick={() => (auto.value = !auto.peek())}
-          class={`text-[50px] h-full w-0 grow flex flex-col items-center justify-center font-mono transition-colors duration-300" ${auto.value ? "bg-green-500" : ""}`}>
+          class={`text-[50px] h-full select-none cursor-pointer w-0 grow flex flex-col items-center justify-center font-mono transition-colors duration-300" ${auto.value ? "bg-green-500" : ""}`}>
           <Text path="auto" />
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "preact/compat";
 import { fail, Maybe, succeed } from "@intzaaa/maybe";
 import { signal, effect, computed } from "@preact/signals";
-import { readBarcodes } from "zxing-wasm/reader";
+import { readBarcodes } from "zxing-wasm";
 import { Peer } from "peerjs";
 import { encode } from "base65536";
 import { split } from "../utils/split";
