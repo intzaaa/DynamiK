@@ -69,11 +69,9 @@ export default function Sender() {
             }
           });
 
-          conn.on("iceStateChanged", (state) => {
-            if (state === "disconnected" || state === "closed" || state === "failed") {
-              dispose();
-              peerCount.value--;
-            }
+          conn.on("close", () => {
+            peerCount.value--;
+            dispose();
           });
         });
       });

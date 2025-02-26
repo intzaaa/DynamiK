@@ -5,7 +5,6 @@ import { useEffect } from "preact/hooks";
 import { Text } from "..";
 import { writeBarcode } from "zxing-wasm";
 import { alarm } from "../utils/alarm";
-import { useLocation } from "preact-iso";
 
 const createReceiverPeer = () => {
   const peer = new Peer(config);
@@ -26,16 +25,6 @@ export default function Receiver() {
   const dataUrl = signal<string | undefined>(undefined);
   let count = 0;
   const dataUrlSvg = signal<string | undefined>(undefined);
-
-  // effect(() => {
-  //   if (id.value) {
-  //     const search = new URLSearchParams(location.search);
-
-  //     search.set("id", id.value);
-
-  //     window.location.search = search.toString();
-  //   }
-  // });
 
   effect(() => {
     if (dataUrl.value) {
@@ -63,15 +52,7 @@ export default function Receiver() {
       });
       _conn.on("data", async (data: any) => {
         dataUrl.value = String(data);
-
         console.info(data);
-      });
-      _conn.on("close", () => {
-        currentConnection.value = undefined;
-        isConnected.value = false;
-
-        useLocation().route("/");
-        console.info("Disconnected");
       });
 
       currentConnection.value = _conn;

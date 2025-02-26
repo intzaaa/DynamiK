@@ -13,6 +13,30 @@ export const config = {
       { urls: "stun:stun.voipstunt.com" },
       { urls: "stun:stun.voxgratia.org" },
       { urls: "stun:stun.xten.com" },
+      {
+        urls: "stun:stun.relay.metered.ca:80",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80",
+        username: "9056cffa3ca6fe05b5ac81f0",
+        credential: "ejenD6+PzzDEBvNQ",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80?transport=tcp",
+        username: "9056cffa3ca6fe05b5ac81f0",
+        credential: "ejenD6+PzzDEBvNQ",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:443",
+        username: "9056cffa3ca6fe05b5ac81f0",
+        credential: "ejenD6+PzzDEBvNQ",
+      },
+      {
+        urls: "turns:global.relay.metered.ca:443?transport=tcp",
+        username: "9056cffa3ca6fe05b5ac81f0",
+        credential: "ejenD6+PzzDEBvNQ",
+      },
     ],
+    sdpSemantics: "unified-plan",
   },
 };
