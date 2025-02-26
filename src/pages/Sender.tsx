@@ -112,7 +112,10 @@ export default function Sender() {
   });
 
   effect(() => {
-    navigator.clipboard.writeText(peer_id_encoded.value);
+    try {
+      navigator.clipboard.writeText(peer_id_encoded.value);
+      alarm();
+    } catch {}
   });
 
   useEffect(() => {
