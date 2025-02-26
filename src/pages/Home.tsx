@@ -9,18 +9,18 @@ export default function Home() {
     <div class="w-full h-full flex flex-col gap-4">
       {[
         {
-          text: <Text path="send"></Text>,
-          route: "/send",
+          label: <Text path="send" />,
+          path: "/send",
         },
         {
-          text: <Text path="receive"></Text>,
-          route: "/receive",
+          label: <Text path="receive" />,
+          path: "/receive",
         },
-      ].map(({ text, route }) => (
+      ].map(({ label, path }) => (
         <div
           class="w-full h-0 flex justify-center items-center grow text-4xl cursor-pointer"
-          onClick={() => location.route(route)}>
-          {text}
+          onClick={() => location.route(path)}>
+          {label}
         </div>
       ))}
     </div>

@@ -9,7 +9,7 @@ import { alarm } from "../utils/alarm";
 import { writeBarcode } from "zxing-wasm/writer";
 import { receiver_url } from "../utils/receiver_url";
 
-const request_camera = async (): Promise<Maybe<MediaStream>> => {
+async function requestCamera(): Promise<Maybe<MediaStream>> {
   try {
     const devices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "videoinput");
     console.info(devices);
@@ -31,9 +31,9 @@ const request_camera = async (): Promise<Maybe<MediaStream>> => {
   } catch (e) {
     return fail(e);
   }
-};
+}
 
-const create_sender_peer = () => {
+const createSenderPeer = () => {
   const peer = new Peer(config);
 
   return new Promise<Peer>((resolve) => {
@@ -46,24 +46,24 @@ const create_sender_peer = () => {
 
 export default function Sender() {
   const video = useRef<HTMLVideoElement>(null);
-  const media = signal<MediaStream | undefined>(undefined);
-  const scanned = signal<string | undefined>(undefined);
+  const mediaStream = signal<MediaStream | undefined>(undefined);
+  const scannedData = signal<string | undefined>(undefined);
 
-  const peer = signal<Peer | undefined>(undefined);
-  const url = computed(() => (peer.value ? receiver_url(peer.value.id) : undefined));
-  const url_svg = signal<string | undefined>(undefined);
-  const peer_count = signal<number>(0);
+  const currentPeer = signal<Peer | undefined>(undefined);
+  const peerUrl = computed(() => (currentPeer.value ? receiver_url(currentPeer.value.id) : undefined));
+  const peerUrlSvg = signal<string | undefined>(undefined);
+  const peerCount = signal<number>(0);
 
   effect(() => {
-    if (peer.value) {
-      peer.value.on("connection", (conn) => {
+    if (currentPeer.value) {
+      currentPeer.value.on("connection", (conn) => {
         conn.on("open", () => {
           console.info("Connected to", conn.peer);
-          peer_count.value++;
+          peerCount.value++;
 
           const dispose = effect(() => {
-            if (scanned.value) {
-              conn.send(scanned.value);
+            if (scannedData.value) {
+              conn.send(scannedData.value);
 
               console.info("Send to", conn.peer);
             }
@@ -71,19 +71,23 @@ export default function Sender() {
 
           conn.on("close", () => {
             dispose();
-            peer_count.value--;
+            peerCount.value--;
           });
         });
+      });
+
+      currentPeer.value.on("disconnected", () => {
+        currentPeer.value?.reconnect();
       });
     }
   });
 
   effect(() => {
-    if (media.value?.getVideoTracks()[0]) {
+    if (mediaStream.value?.getVideoTracks()[0]) {
       setInterval(async () => {
         try {
           const decoded = await readBarcodes(
-            await new ImageCapture(media.value!.getVideoTracks()[0]!).grabFrame().then((bitmap) => {
+            await new ImageCapture(mediaStream.value!.getVideoTracks()[0]!).grabFrame().then((bitmap) => {
               const { width, height } = bitmap;
 
               const context = new OffscreenCanvas(width, height).getContext("2d")!;
@@ -101,9 +105,9 @@ export default function Sender() {
           const valid = decoded.filter((code) => code.isValid);
 
           if (valid.length > 0) {
-            scanned.value = valid[0]!.text;
+            scannedData.value = valid[0]!.text;
 
-            console.info(scanned.value);
+            console.info(scannedData.value);
           }
         } catch {}
       }, 100);
@@ -111,38 +115,38 @@ export default function Sender() {
   });
 
   effect(() => {
-    if (scanned.value) {
+    if (scannedData.value) {
       navigator.vibrate([10, 5, 3]);
       alarm();
     }
   });
 
   effect(() => {
-    if (url.value) {
+    if (peerUrl.value) {
       try {
-        navigator.clipboard.writeText(url.value);
+        navigator.clipboard.writeText(peerUrl.value);
         alarm();
       } catch {}
     }
   });
 
   useEffect(() => {
-    request_camera().then(([err, media_stream]) => {
+    requestCamera().then(([err, stream]) => {
       if (err) return console.error(err);
 
-      media.value = media_stream;
-      video.current!.srcObject = media_stream;
+      mediaStream.value = stream;
+      video.current!.srcObject = stream;
       video.current!.play();
     });
 
-    create_sender_peer().then(async (_peer) => {
-      peer.value = _peer;
+    createSenderPeer().then(async (_peer) => {
+      currentPeer.value = _peer;
 
-      url_svg.value = URL.createObjectURL(
+      peerUrlSvg.value = URL.createObjectURL(
         new Blob(
           [
             (
-              await writeBarcode(url.value!, {
+              await writeBarcode(peerUrl.value!, {
                 format: "QRCode",
                 ecLevel: "H",
               })
@@ -154,14 +158,14 @@ export default function Sender() {
     });
 
     return () => {
-      media
+      mediaStream
         .peek()
         ?.getTracks()
         .forEach((track) => track.stop());
 
-      url_svg.value && URL.revokeObjectURL(url_svg.value);
+      peerUrlSvg.value && URL.revokeObjectURL(peerUrlSvg.value);
 
-      peer.peek()?.destroy();
+      currentPeer.peek()?.destroy();
 
       console.info("Destroyed");
     };
@@ -184,18 +188,18 @@ export default function Sender() {
         </a>
         <div class="h-full w-0 grow flex flex-col items-center justify-center">
           <div
-            onClick={() => url.value && navigator.clipboard.writeText(url.value)}
+            onClick={() => peerUrl.value && navigator.clipboard.writeText(peerUrl.value)}
             class="h-0 grow select-none font-mono text-center flex flex-col items-center justify-center cursor-pointer">
             {computed(() =>
-              peer.value?.id ? (
+              currentPeer.value?.id ? (
                 <>
                   <div class="w-full h-full flex flex-row items-center justify-between">
                     <img
-                      src={url_svg.value}
+                      src={peerUrlSvg.value}
                       class="h-full w-auto aspect-square"></img>
-                    <div class="text-[80px] overflow-clip">{peer_count}</div>
+                    <div class="text-[80px] overflow-clip">{peerCount}</div>
                   </div>
-                  <div class="text-xs">{peer.value.id}</div>
+                  <div class="text-xs">{currentPeer.value.id}</div>
                 </>
               ) : (
                 <div class="text-4xl">

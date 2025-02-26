@@ -5,11 +5,11 @@ import { LocationProvider, Router, Route } from "preact-iso";
 
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
-import setup_i18n from "./utils/i18n";
+import setupI18n from "./utils/i18n";
 import Sender from "./pages/Sender";
 import Receiver from "./pages/Receiver";
 
-const { Text, register } = setup_i18n("en", {
+const { Text, register } = setupI18n("en", {
   send: "Send",
   receive: "Receive",
   setup: "Setting up...",

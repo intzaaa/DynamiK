@@ -5,8 +5,9 @@ import { useEffect } from "preact/hooks";
 import { Text } from "..";
 import { writeBarcode } from "zxing-wasm";
 import { alarm } from "../utils/alarm";
+import { useLocation } from "preact-iso";
 
-const create_receiver_peer = () => {
+const createReceiverPeer = () => {
   const peer = new Peer(config);
 
   return new Promise<Peer>((resolve) => {
@@ -18,13 +19,13 @@ const create_receiver_peer = () => {
 };
 
 export default function Receiver() {
-  const id = signal<string | undefined>(new URLSearchParams(location.search).get("id") ?? undefined);
+  const senderId = signal<string | undefined>(new URLSearchParams(location.search).get("id") ?? undefined);
   const peer = signal<Peer | undefined>(undefined);
-  const conn = signal<DataConnection | undefined>(undefined);
-  const state = signal<boolean>(false);
-  const url = signal<string | undefined>(undefined);
+  const currentConnection = signal<DataConnection | undefined>(undefined);
+  const isConnected = signal<boolean>(false);
+  const dataUrl = signal<string | undefined>(undefined);
   let count = 0;
-  const svg = signal<string | undefined>(undefined);
+  const dataUrlSvg = signal<string | undefined>(undefined);
 
   // effect(() => {
   //   if (id.value) {
@@ -37,52 +38,54 @@ export default function Receiver() {
   // });
 
   effect(() => {
-    if (url.value) {
-      writeBarcode(url.value, {
+    if (dataUrl.value) {
+      writeBarcode(dataUrl.value, {
         format: "QRCode",
         ecLevel: "M",
       }).then((result) => {
         count++;
 
         alarm();
-        svg.value && URL.revokeObjectURL(svg.value);
-        svg.value = URL.createObjectURL(new Blob([result.svg], { type: "image/svg+xml" }));
+        dataUrlSvg.value && URL.revokeObjectURL(dataUrlSvg.value);
+        dataUrlSvg.value = URL.createObjectURL(new Blob([result.svg], { type: "image/svg+xml" }));
       });
     }
   });
 
   effect(() => {
-    if (id.value && peer.value) {
-      conn.peek()?.close();
+    if (senderId.value && peer.value) {
+      currentConnection.peek()?.close();
 
-      const _conn = peer.value.connect(id.value);
+      const _conn = peer.value.connect(senderId.value);
       _conn.on("open", () => {
-        state.value = true;
+        isConnected.value = true;
         console.info("Connected to", _conn.peer);
       });
       _conn.on("data", async (data: any) => {
-        url.value = String(data);
+        dataUrl.value = String(data);
 
         console.info(data);
       });
       _conn.on("close", () => {
-        conn.value = undefined;
-        state.value = false;
+        currentConnection.value = undefined;
+        isConnected.value = false;
+
+        useLocation().route("/");
         console.info("Disconnected");
       });
 
-      conn.value = _conn;
+      currentConnection.value = _conn;
     }
   });
 
   useEffect(() => {
-    create_receiver_peer().then((_peer) => {
+    createReceiverPeer().then((_peer) => {
       peer.value = _peer;
     });
 
     return () => {
       peer.peek()?.destroy();
-      svg.value && URL.revokeObjectURL(svg.value);
+      dataUrlSvg.value && URL.revokeObjectURL(dataUrlSvg.value);
 
       console.info("Destroyed");
     };
@@ -92,8 +95,8 @@ export default function Receiver() {
     <>
       <div>
         <input
-          value={id.value}
-          onInput={(e) => (id.value = e.currentTarget.value)}
+          value={senderId.value}
+          onInput={(e) => (senderId.value = e.currentTarget.value)}
           autoFocus
           type="text"
           class="w-full h-24 text-center text-xl text-mono border-none outline-none bg-transparent"
@@ -102,22 +105,22 @@ export default function Receiver() {
       </div>
       <div
         onClick={() => {
-          url.value && navigator.clipboard.writeText(url.value);
+          dataUrl.value && navigator.clipboard.writeText(dataUrl.value);
         }}
         class={`w-full h-0 grow text-4xl break-all font-mono p-2 overflow-clip dark:text-white flex flex-wrap flex-row items-center justify-between`}>
         {computed(() => {
-          if (url.value) {
+          if (dataUrl.value) {
             return (
               <img
-                src={svg.value}
-                alt={url.value}
+                src={dataUrlSvg.value}
+                alt={dataUrl.value}
                 class={`w-full h-full object-contain cursor-pointer ${count % 2 === 0 ? "object-right-bottom" : "object-left-top"}`}></img>
             );
           } else if (!peer.value) {
             return <Text path="setup" />;
-          } else if (!id.value) {
+          } else if (!senderId.value) {
             return <Text path="waitCode" />;
-          } else if (!state.value) {
+          } else if (!isConnected.value) {
             return <Text path="waitConn" />;
           } else {
             return <Text path="waitData" />;

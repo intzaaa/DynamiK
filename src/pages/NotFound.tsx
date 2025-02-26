@@ -1,6 +1,6 @@
 import { useLocation } from "preact-iso";
 
-export default function NotFound() {
+export default function PageNotFound() {
   useLocation().route("/");
 
   return <></>;
