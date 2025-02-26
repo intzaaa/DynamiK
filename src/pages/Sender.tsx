@@ -193,7 +193,7 @@ export default function Sender() {
         <div class="h-full w-0 grow flex flex-col items-center justify-center">
           <div
             onClick={() => peerUrl.value && navigator.clipboard.writeText(peerUrl.value)}
-            class="h-0 grow select-none font-mono text-center flex flex-col items-center justify-center cursor-pointer">
+            class="h-0 grow font-mono text-center flex flex-col items-center justify-center cursor-pointer">
             {computed(() =>
               currentPeer.value?.id ? (
                 <>
@@ -203,7 +203,15 @@ export default function Sender() {
                       class="h-full w-auto aspect-square"></img>
                     <div class="text-[80px] overflow-clip">{peerCount}</div>
                   </div>
-                  <div class="text-xs">{currentPeer.value.id}</div>
+                  <a
+                    class="text-xs"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    href={peerUrl.value}>
+                    {currentPeer.value.id}
+                  </a>
                 </>
               ) : (
                 <div class="text-4xl">
