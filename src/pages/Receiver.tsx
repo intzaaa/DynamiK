@@ -1,12 +1,10 @@
 import { computed, effect, signal } from "@preact/signals";
-import { decode } from "base65536";
 import { DataConnection, Peer } from "peerjs";
 import { config } from "../utils/config";
 import { useEffect } from "preact/hooks";
 import { Text } from "..";
 import { writeBarcode } from "zxing-wasm";
 import { alarm } from "../utils/alarm";
-import { decoder } from "../utils/text";
 
 const create_receiver_peer = () => {
   const peer = new Peer(config);
@@ -20,13 +18,23 @@ const create_receiver_peer = () => {
 };
 
 export default function Receiver() {
-  const id = signal<string | undefined>(undefined);
+  const id = signal<string | undefined>(new URLSearchParams(location.search).get("id") ?? undefined);
   const peer = signal<Peer | undefined>(undefined);
   const conn = signal<DataConnection | undefined>(undefined);
   const state = signal<boolean>(false);
   const url = signal<string | undefined>(undefined);
   let count = 0;
   const svg = signal<string | undefined>(undefined);
+
+  // effect(() => {
+  //   if (id.value) {
+  //     const search = new URLSearchParams(location.search);
+
+  //     search.set("id", id.value);
+
+  //     window.location.search = search.toString();
+  //   }
+  // });
 
   effect(() => {
     if (url.value) {
@@ -84,12 +92,8 @@ export default function Receiver() {
     <>
       <div>
         <input
-          onInput={(e) => {
-            const decoded = decode((e.target as HTMLInputElement).value);
-
-            console.info(decoded);
-            id.value = decoder.decode(decoded);
-          }}
+          value={id.value}
+          onInput={(e) => (id.value = e.currentTarget.value)}
           autoFocus
           type="text"
           class="w-full h-24 text-center text-xl text-mono border-none outline-none bg-transparent"

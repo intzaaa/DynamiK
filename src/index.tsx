@@ -1,6 +1,4 @@
 import "./index.css";
-import "large-small-dynamic-viewport-units-polyfill";
-import "image-capture";
 
 import { render } from "preact";
 import { LocationProvider, Router, Route } from "preact-iso";
@@ -49,7 +47,7 @@ export { Text };
 export function App() {
   return (
     <LocationProvider>
-      <main class="flex flex-col overflow-auto main">
+      <main class="flex flex-col overflow-auto w-full h-dvh">
         <Router>
           <Route
             path="/"
