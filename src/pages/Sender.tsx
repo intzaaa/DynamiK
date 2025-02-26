@@ -52,14 +52,14 @@ export default function Sender() {
   const currentPeer = signal<Peer | undefined>(undefined);
   const peerUrl = computed(() => (currentPeer.value ? receiver_url(currentPeer.value.id) : undefined));
   const peerUrlSvg = signal<string | undefined>(undefined);
-  const peerCount = signal<number>(0);
+  const connCount = signal<number>(0);
 
   effect(() => {
     if (currentPeer.value) {
       currentPeer.value.on("connection", (conn) => {
         conn.on("open", () => {
           console.info("Connected to", conn.peer);
-          peerCount.value++;
+          connCount.value++;
 
           const dispose = effect(() => {
             if (scannedData.value) {
@@ -69,14 +69,16 @@ export default function Sender() {
             }
           });
 
-          conn.peerConnection.onconnectionstatechange = (e) => {
-            const state = (e.target as RTCPeerConnection)?.connectionState;
-            if (state === "disconnected" || state === "failed" || state === "closed") {
-              conn.close();
-              peerCount.value--;
-              dispose();
-            }
-          };
+          conn.on("close", () => {
+            dispose();
+            connCount.value--;
+          });
+
+          conn.on("error", () => {
+            conn.close();
+            connCount.value--;
+            dispose();
+          });
         });
       });
 
@@ -161,16 +163,15 @@ export default function Sender() {
     });
 
     return () => {
-      mediaStream
-        .peek()
-        ?.getTracks()
-        .forEach((track) => track.stop());
+      effect(() => {
+        mediaStream.value?.getTracks().forEach((track) => track.stop());
 
-      peerUrlSvg.value && URL.revokeObjectURL(peerUrlSvg.value);
+        peerUrlSvg.value && URL.revokeObjectURL(peerUrlSvg.value);
 
-      currentPeer.peek()?.destroy();
+        currentPeer.value?.destroy();
 
-      console.info("Destroyed");
+        console.info("Destroyed");
+      });
     };
   }, []);
 
@@ -200,7 +201,7 @@ export default function Sender() {
                     <img
                       src={peerUrlSvg.value}
                       class="h-full w-auto aspect-square"></img>
-                    <div class="text-[80px] overflow-clip">{peerCount}</div>
+                    <div class="text-[80px] overflow-clip">{connCount}</div>
                   </div>
                   <a
                     class="text-xs"

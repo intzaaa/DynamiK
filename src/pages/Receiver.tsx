@@ -5,6 +5,7 @@ import { useEffect } from "preact/hooks";
 import { Text } from "..";
 import { writeBarcode } from "zxing-wasm";
 import { alarm } from "../utils/alarm";
+import { useLocation } from "preact-iso";
 
 const createReceiverPeer = () => {
   const peer = new Peer(config);
@@ -82,10 +83,12 @@ export default function Receiver() {
     });
 
     return () => {
-      peer.peek()?.destroy();
-      dataUrlSvg.value && URL.revokeObjectURL(dataUrlSvg.value);
+      effect(() => {
+        peer.value?.destroy();
+        dataUrlSvg.value && URL.revokeObjectURL(dataUrlSvg.value);
 
-      console.info("Destroyed");
+        console.info("Destroyed");
+      });
     };
   }, []);
 
@@ -98,12 +101,19 @@ export default function Receiver() {
           autoFocus
           type="text"
           class="w-full h-24 text-center text-xl text-mono border-none outline-none bg-transparent"
-          placeholder={Text({ path: "codeInput" }).raw}
+          placeholder={Text({ path: "codePlaceholder" }).raw}
         />
       </div>
       <div
         onClick={() => {
-          dataUrl.value && navigator.clipboard.writeText(dataUrl.value);
+          if (connectionState.value === "failed") {
+            const { url, route } = useLocation();
+            route(url);
+          }
+
+          if (dataUrl.value) {
+            navigator.clipboard.writeText(dataUrl.value);
+          }
         }}
         class={`w-full h-0 grow text-4xl break-all font-mono p-2 overflow-clip dark:text-white flex flex-wrap flex-row items-center justify-between`}>
         {computed(() => {
@@ -112,16 +122,18 @@ export default function Receiver() {
               <img
                 src={dataUrlSvg.value}
                 alt={dataUrl.value}
-                class={`w-full h-full object-contain cursor-pointer ${count % 2 === 0 ? "object-right-bottom" : "object-left-top"}`}></img>
+                class={`w-full h-full object-contain cursor-pointer ${count % 2 === 0 ? "object-right-bottom" : "object-left-top"} ${connectionState.value === "failed" ? "text-red-500" : ""}`}></img>
             );
           } else if (!peer.value) {
             return <Text path="setup" />;
           } else if (!senderId.value) {
             return <Text path="waitCode" />;
           } else if (connectionState.value === "idle") {
-            return <Text path="waitConn" />;
+            return <Text path="tryConn" />;
+          } else if (connectionState.value === "failed") {
+            return <Text path="connInterrupt" />;
           } else {
-            return <Text path="waitData" />;
+            return <Text path="receiveReady" />;
           }
         })}
       </div>
