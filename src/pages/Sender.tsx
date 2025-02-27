@@ -94,7 +94,12 @@ export default function Sender() {
 
   effect(() => {
     if (mediaStream.value?.getVideoTracks()[0]) {
+      let done = false;
+
       setInterval(async () => {
+        if (done) return;
+        done = true;
+
         try {
           const decoded = await readBarcodes(
             await new ImageCapture(mediaStream.value!.getVideoTracks()[0]!).grabFrame().then((bitmap) => {
@@ -120,6 +125,8 @@ export default function Sender() {
             console.info(scannedData.value);
           }
         } catch {}
+
+        done = false;
       }, 100);
     }
   });
