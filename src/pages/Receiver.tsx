@@ -35,12 +35,14 @@ export default function Receiver() {
       }).then((result) => {
         dataUrlSvg.value && URL.revokeObjectURL(dataUrlSvg.value);
         dataUrlSvg.value = URL.createObjectURL(new Blob([result.svg], { type: "image/svg+xml" }));
-
-        setTimeout(() => {
-          count++;
-          alarm();
-        }, 10);
       });
+    }
+  });
+
+  effect(() => {
+    if (dataUrlSvg.value) {
+      count++;
+      alarm();
     }
   });
 
@@ -82,14 +84,15 @@ export default function Receiver() {
       peer.value = _peer;
     });
 
-    return () => {
+    return () =>
       effect(() => {
-        peer.value?.destroy();
         dataUrlSvg.value && URL.revokeObjectURL(dataUrlSvg.value);
 
-        console.info("Destroyed");
+        const peerId = peer.value?.id;
+        peer.value?.destroy();
+
+        peer.value?.destroyed && console.info("Destroyed", peerId);
       });
-    };
   }, []);
 
   return (
@@ -117,7 +120,7 @@ export default function Receiver() {
         }}
         class={`w-full h-0 grow text-4xl break-all font-mono p-2 overflow-clip dark:text-white flex flex-wrap flex-row items-center justify-between`}>
         {computed(() => {
-          if (dataUrl.value) {
+          if (dataUrlSvg.value) {
             return (
               <img
                 src={dataUrlSvg.value}

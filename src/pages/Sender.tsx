@@ -172,15 +172,15 @@ export default function Sender() {
       reader.readAsDataURL(blob);
     });
 
-    return () => {
+    return () =>
       effect(() => {
         mediaStream.value?.getTracks().forEach((track) => track.stop());
 
+        const peerId = currentPeer.value?.id;
         currentPeer.value?.destroy();
 
-        console.info("Destroyed");
+        currentPeer.value?.destroyed && console.info("Destroyed", peerId);
       });
-    };
   }, []);
 
   return (
