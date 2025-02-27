@@ -51,7 +51,7 @@ export default function Sender() {
 
   const currentPeer = signal<Peer | undefined>(undefined);
   const peerUrl = computed(() => (currentPeer.value ? receiver_url(currentPeer.value.id) : undefined));
-  const peerUrlSvg = signal<string | undefined>(undefined);
+  const sharingQR = signal<string | undefined>(undefined);
   const connCount = signal<number>(0);
 
   effect(() => {
@@ -71,7 +71,6 @@ export default function Sender() {
               });
 
               console.info("Sending to", conn.peer);
-              console.info("Sending to", conn.peer);
             }
           });
 
@@ -80,8 +79,6 @@ export default function Sender() {
               conn.close();
               dispose();
               connCount.value--;
-
-              console.info("Closed", conn.peer);
 
               console.info("Closed", conn.peer);
             }
@@ -163,7 +160,7 @@ export default function Sender() {
 
       const reader = new FileReader();
       reader.onload = () => {
-        peerUrlSvg.value = reader.result as string;
+        sharingQR.value = reader.result as string;
       };
       reader.readAsDataURL(blob);
     });
@@ -201,7 +198,7 @@ export default function Sender() {
                 <>
                   <div class="w-full h-full flex flex-row items-center justify-between">
                     <img
-                      src={peerUrlSvg.value}
+                      src={sharingQR.value}
                       style={{
                         imageRendering: "pixelated",
                       }}
