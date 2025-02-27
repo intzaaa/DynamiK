@@ -7,7 +7,7 @@ import { config } from "../utils/config";
 import { Text } from "..";
 import { alarm } from "../utils/alarm";
 import { receiver_url } from "../utils/receiver_url";
-import Controller from "../components/Controller";
+import "image-capture";
 
 async function requestCamera(): Promise<Maybe<MediaStream>> {
   try {
@@ -52,27 +52,38 @@ export default function Sender() {
   const currentPeer = signal<Peer | undefined>(undefined);
   const peerUrl = computed(() => (currentPeer.value ? receiver_url(currentPeer.value.id) : undefined));
   const peerUrlSvg = signal<string | undefined>(undefined);
-  const peerCount = signal<number>(0);
+  const connCount = signal<number>(0);
 
   effect(() => {
     if (currentPeer.value) {
       currentPeer.value.on("connection", (conn) => {
         conn.on("open", () => {
           console.info("Connected to", conn.peer);
-          peerCount.value++;
+          connCount.value++;
 
           const dispose = effect(() => {
             if (scannedData.value) {
-              conn.send(scannedData.value);
+              conn.send(scannedData.value)?.then(() => {
+                console.info("Sent to", conn.peer);
+              });
+              conn.send(scannedData.value)?.then(() => {
+                console.info("Sent to", conn.peer);
+              });
 
-              console.info("Send to", conn.peer);
+              console.info("Sending to", conn.peer);
+              console.info("Sending to", conn.peer);
             }
           });
 
-          conn.on("iceStateChanged", (state) => {
-            if (state === "disconnected" || state === "closed" || state === "failed") {
+          conn.peerConnection.addEventListener("connectionstatechange", () => {
+            if (conn.peerConnection.connectionState !== "connected") {
+              conn.close();
               dispose();
-              peerCount.value--;
+              connCount.value--;
+
+              console.info("Closed", conn.peer);
+
+              console.info("Closed", conn.peer);
             }
           });
         });
@@ -118,7 +129,6 @@ export default function Sender() {
 
   effect(() => {
     if (scannedData.value) {
-      navigator.vibrate([10, 5, 3]);
       alarm();
     }
   });
@@ -144,32 +154,28 @@ export default function Sender() {
     createSenderPeer().then(async (_peer) => {
       currentPeer.value = _peer;
 
-      peerUrlSvg.value = URL.createObjectURL(
-        new Blob(
-          [
-            (
-              await writeBarcode(peerUrl.value!, {
-                format: "QRCode",
-                ecLevel: "H",
-              })
-            ).svg,
-          ],
-          { type: "image/svg+xml" }
-        )
-      );
+      const blob = (
+        await writeBarcode(peerUrl.value!, {
+          format: "QRCode",
+          ecLevel: "H",
+        })
+      ).image!;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        peerUrlSvg.value = reader.result as string;
+      };
+      reader.readAsDataURL(blob);
     });
 
     return () => {
-      mediaStream
-        .peek()
-        ?.getTracks()
-        .forEach((track) => track.stop());
+      effect(() => {
+        mediaStream.value?.getTracks().forEach((track) => track.stop());
 
-      peerUrlSvg.value && URL.revokeObjectURL(peerUrlSvg.value);
+        currentPeer.value?.destroy();
 
-      currentPeer.peek()?.destroy();
-
-      console.info("Destroyed");
+        console.info("Destroyed");
+      });
     };
   }, []);
 
@@ -182,21 +188,37 @@ export default function Sender() {
           playsInline
           muted></video>
       </div>
-      <Controller>
+      <div class="w-full h-[150px] flex flex-row justify-between items-center overflow-hidden">
+        <a
+          class="text-[100px] aspect-square h-full w-auto text-center"
+          href="/">
+          {"<"}
+        </a>
         <div class="h-full w-0 grow flex flex-col items-center justify-center">
-          <div
-            onClick={() => peerUrl.value && navigator.clipboard.writeText(peerUrl.value)}
-            class="h-0 grow select-none font-mono text-center flex flex-col items-center justify-center cursor-pointer">
+          <div class="w-full h-0 grow font-mono text-center flex flex-col items-center justify-center cursor-pointer">
             {computed(() =>
               currentPeer.value?.id ? (
                 <>
                   <div class="w-full h-full flex flex-row items-center justify-between">
                     <img
                       src={peerUrlSvg.value}
+                      style={{
+                        imageRendering: "pixelated",
+                      }}
                       class="h-full w-auto aspect-square"></img>
-                    <div class="text-[80px] overflow-clip">{peerCount}</div>
+                    <div class="text-[80px] overflow-clip px-4">{connCount}</div>
                   </div>
-                  <div class="text-xs">{currentPeer.value.id}</div>
+                  <a
+                    class="text-xs"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+
+                      navigator.clipboard.writeText(e.currentTarget.href);
+                    }}
+                    href={peerUrl.value}>
+                    {currentPeer.value.id}
+                  </a>
                 </>
               ) : (
                 <div class="text-4xl">
@@ -206,7 +228,7 @@ export default function Sender() {
             )}
           </div>
         </div>
-      </Controller>
+      </div>
     </>
   );
 }

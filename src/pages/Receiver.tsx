@@ -6,7 +6,6 @@ import { Text } from "..";
 import { writeBarcode } from "zxing-wasm";
 import { alarm } from "../utils/alarm";
 import { useLocation } from "preact-iso";
-import Controller from "../components/Controller";
 
 const createReceiverPeer = () => {
   const peer = new Peer(config);
@@ -20,23 +19,13 @@ const createReceiverPeer = () => {
 };
 
 export default function Receiver() {
-  const senderId = signal<string | undefined>(new URLSearchParams(location.search).get("id") ?? undefined);
+  const senderId = signal<string | undefined>(undefined);
   const peer = signal<Peer | undefined>(undefined);
   const currentConnection = signal<DataConnection | undefined>(undefined);
-  const isConnected = signal<boolean>(false);
+  const connectionState = signal<"idle" | "failed" | "connected">("idle");
   const dataUrl = signal<string | undefined>(undefined);
   let count = 0;
   const dataUrlSvg = signal<string | undefined>(undefined);
-
-  // effect(() => {
-  //   if (id.value) {
-  //     const search = new URLSearchParams(location.search);
-
-  //     search.set("id", id.value);
-
-  //     window.location.search = search.toString();
-  //   }
-  // });
 
   effect(() => {
     if (dataUrl.value) {
@@ -44,51 +33,62 @@ export default function Receiver() {
         format: "QRCode",
         ecLevel: "M",
       }).then((result) => {
-        count++;
-
-        alarm();
         dataUrlSvg.value && URL.revokeObjectURL(dataUrlSvg.value);
         dataUrlSvg.value = URL.createObjectURL(new Blob([result.svg], { type: "image/svg+xml" }));
+
+        setTimeout(() => {
+          count++;
+          alarm();
+        }, 10);
       });
     }
   });
 
   effect(() => {
     if (senderId.value && peer.value) {
-      currentConnection.peek()?.close();
+      if (currentConnection.peek()) {
+        console.info("Closing", currentConnection.peek()?.peer);
+        currentConnection.peek()?.close();
+      }
 
-      const _conn = peer.value.connect(senderId.value);
-      _conn.on("open", () => {
-        isConnected.value = true;
-        console.info("Connected to", _conn.peer);
+      console.info("Connecting to", senderId.value);
+
+      const conn = peer.value.connect(senderId.value);
+      conn.on("open", () => {
+        connectionState.value = "connected";
+        console.info("Connected to", conn.peer);
       });
-      _conn.on("data", async (data: any) => {
+      conn.on("data", async (data: any) => {
         dataUrl.value = String(data);
-
         console.info(data);
       });
-      _conn.peerConnection.addEventListener("connectionstatechange", () => {
-        currentConnection.value = undefined;
-        isConnected.value = false;
-
-        useLocation().route("/");
-        console.info("Disconnected");
+      conn.on("close", () => {
+        connectionState.value = "idle";
+        console.info("Closed", conn.peer);
+      });
+      conn.on("error", (err) => {
+        connectionState.value = "failed";
+        console.error(err);
       });
 
-      currentConnection.value = _conn;
+      currentConnection.value = conn;
     }
   });
 
   useEffect(() => {
+    senderId.value = new URLSearchParams(location.search).get("id") ?? undefined;
+
     createReceiverPeer().then((_peer) => {
       peer.value = _peer;
     });
 
     return () => {
-      peer.peek()?.destroy();
-      dataUrlSvg.value && URL.revokeObjectURL(dataUrlSvg.value);
+      effect(() => {
+        peer.value?.destroy();
+        dataUrlSvg.value && URL.revokeObjectURL(dataUrlSvg.value);
 
-      console.info("Destroyed");
+        console.info("Destroyed");
+      });
     };
   }, []);
 
@@ -96,17 +96,24 @@ export default function Receiver() {
     <>
       <div>
         <input
-          value={senderId.value}
+          value={senderId}
           onInput={(e) => (senderId.value = e.currentTarget.value)}
           autoFocus
           type="text"
           class="w-full h-24 text-center text-xl text-mono border-none outline-none bg-transparent"
-          placeholder={Text({ path: "codeInput" }).raw}
+          placeholder={Text({ path: "codePlaceholder" }).raw}
         />
       </div>
       <div
         onClick={() => {
-          dataUrl.value && navigator.clipboard.writeText(dataUrl.value);
+          if (connectionState.value === "failed") {
+            const { url, route } = useLocation();
+            route(url);
+          }
+
+          if (dataUrl.value) {
+            navigator.clipboard.writeText(dataUrl.value);
+          }
         }}
         class={`w-full h-0 grow text-4xl break-all font-mono p-2 overflow-clip dark:text-white flex flex-wrap flex-row items-center justify-between`}>
         {computed(() => {
@@ -115,20 +122,28 @@ export default function Receiver() {
               <img
                 src={dataUrlSvg.value}
                 alt={dataUrl.value}
-                class={`w-full h-full object-contain cursor-pointer ${count % 2 === 0 ? "object-right-bottom" : "object-left-top"}`}></img>
+                class={`w-full h-full object-contain cursor-pointer ${count % 2 === 0 ? "object-right-bottom" : "object-left-top"} ${connectionState.value === "failed" ? "text-red-500" : ""}`}></img>
             );
           } else if (!peer.value) {
             return <Text path="setup" />;
           } else if (!senderId.value) {
             return <Text path="waitCode" />;
-          } else if (!isConnected.value) {
-            return <Text path="waitConn" />;
+          } else if (connectionState.value === "idle") {
+            return <Text path="tryConn" />;
+          } else if (connectionState.value === "failed") {
+            return <Text path="connInterrupt" />;
           } else {
-            return <Text path="waitData" />;
+            return <Text path="receiveReady" />;
           }
         })}
       </div>
-      <Controller></Controller>
+      <div class="w-full h-[150px] flex flex-row justify-between items-center overflow-hidden">
+        <a
+          class="text-[100px] aspect-square h-full w-auto text-center"
+          href="/">
+          {"<"}
+        </a>
+      </div>
     </>
   );
 }

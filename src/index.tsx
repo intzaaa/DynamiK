@@ -13,7 +13,7 @@ import zxingWasmFilePath from "zxing-wasm/full/zxing_full.wasm?url";
 import { prepareZXingModule } from "zxing-wasm";
 import Help from "./pages/Help";
 
-prepareZXingModule({
+await prepareZXingModule({
   overrides: {
     locateFile: () => zxingWasmFilePath,
   },
@@ -49,11 +49,11 @@ const { Text, register } = setupI18n("en", {
     </>
   ),
   setup: "Setting up...",
-  waitCode: "Waiting for code...",
-  waitConn: "Waiting for connection...",
-  waitData: "Waiting for data...",
-  auto: "AUTO",
-  codeInput: "CODE",
+  waitCode: "Waiting for inputting code...",
+  tryConn: "Waiting for connection...",
+  receiveReady: "Ready to receive...",
+  connInterrupt: "Connection interrupted",
+  codePlaceholder: "Peering code",
 });
 
 register("zh", {
@@ -66,7 +66,7 @@ register("zh", {
       <p>
         <b>DynamiK 是自由软件，不附带任何担保。</b>
       </p>
-      <p>DynamiK 是 Dynamic QRCode Killer 的缩写。DynamiK 可用于广播二维码数据。得益于 WebRTC 技术，您的数据传输过程私密且迅速。</p>
+      <p>DynamiK 是 Dynamic QRCode Killer 的缩写，可用于广播二维码数据。得益于 WebRTC 技术，您的数据传输过程私密且迅速。</p>
       <p>
         DynamiK
         经过精心设计，易于使用。作为发送者，您可以通过查看或点击配对码区域，或长按控制区域的二维码（仅限移动设备）获取配对码或订阅链接提供给接收者。作为接收者，您可以在接收页面输入发送者提供的配对码或直接打开发送者提供的订阅链接来访问发送者推送的数据。
@@ -79,10 +79,10 @@ register("zh", {
   ),
   setup: "正在设置...",
   waitCode: "等待输入代码...",
-  waitConn: "等待连接...",
-  waitData: "等待数据...",
-  auto: "自动",
-  codeInput: "代码",
+  tryConn: "尝试连接...",
+  receiveReady: "已准备好接收...",
+  connInterrupt: "连接中断",
+  codePlaceholder: "配对码",
 });
 
 register("de", {
@@ -116,11 +116,11 @@ register("de", {
     </>
   ),
   setup: "Einrichtung...",
-  waitCode: "Warte auf Code...",
-  waitConn: "Warte auf Verbindung...",
-  waitData: "Warte auf Daten...",
-  auto: "AUTO",
-  codeInput: "CODE",
+  waitCode: "Warte auf Eingabe des Codes...",
+  tryConn: "Warte auf Verbindung...",
+  receiveReady: "Bereit zum Empfangen...",
+  connInterrupt: "Verbindung unterbrochen",
+  codePlaceholder: "Pairing-Code",
 });
 
 export { Text };
