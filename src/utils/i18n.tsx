@@ -1,13 +1,16 @@
 import { effect, signal } from "@preact/signals";
+import { JSX } from "preact";
 
 // https://stackoverflow.com/questions/58434389/typescript-deep-keyof-of-a-nested-object/58436959
-export type Paths<T> = T extends object
+type i18nObject = Record<string, string | JSX.Element>;
+
+export type Paths<T> = T extends i18nObject
   ? {
       [K in keyof T]: `${Exclude<K, symbol>}${"" | `.${Paths<T[K]>}`}`;
     }[keyof T]
   : never;
 
-export type Leaves<T> = T extends object
+export type Leaves<T> = T extends i18nObject
   ? {
       [K in keyof T]: `${Exclude<K, symbol>}${Leaves<T[K]> extends never ? "" : `.${Leaves<T[K]>}`}`;
     }[keyof T]

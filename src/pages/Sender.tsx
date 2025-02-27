@@ -1,13 +1,13 @@
 import { useEffect, useRef } from "preact/compat";
 import { fail, Maybe, succeed } from "@intzaaa/maybe";
 import { signal, effect, computed } from "@preact/signals";
-import { readBarcodes } from "zxing-wasm";
+import { readBarcodes, writeBarcode } from "zxing-wasm";
 import { Peer } from "peerjs";
 import { config } from "../utils/config";
 import { Text } from "..";
 import { alarm } from "../utils/alarm";
-import { writeBarcode } from "zxing-wasm/writer";
 import { receiver_url } from "../utils/receiver_url";
+import Controller from "../components/Controller";
 
 async function requestCamera(): Promise<Maybe<MediaStream>> {
   try {
@@ -182,12 +182,7 @@ export default function Sender() {
           playsInline
           muted></video>
       </div>
-      <div class="w-full h-[150px] flex flex-row justify-between items-center overflow-hidden">
-        <a
-          class="text-[100px] aspect-square h-full w-auto text-center"
-          href="/">
-          {"<"}
-        </a>
+      <Controller>
         <div class="h-full w-0 grow flex flex-col items-center justify-center">
           <div
             onClick={() => peerUrl.value && navigator.clipboard.writeText(peerUrl.value)}
@@ -211,7 +206,7 @@ export default function Sender() {
             )}
           </div>
         </div>
-      </div>
+      </Controller>
     </>
   );
 }

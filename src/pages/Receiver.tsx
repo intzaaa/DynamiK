@@ -6,6 +6,7 @@ import { Text } from "..";
 import { writeBarcode } from "zxing-wasm";
 import { alarm } from "../utils/alarm";
 import { useLocation } from "preact-iso";
+import Controller from "../components/Controller";
 
 const createReceiverPeer = () => {
   const peer = new Peer(config);
@@ -66,7 +67,7 @@ export default function Receiver() {
 
         console.info(data);
       });
-      _conn.on("close", () => {
+      _conn.peerConnection.addEventListener("connectionstatechange", () => {
         currentConnection.value = undefined;
         isConnected.value = false;
 
@@ -127,13 +128,7 @@ export default function Receiver() {
           }
         })}
       </div>
-      <div class="w-full h-[150px] flex flex-row justify-between items-center overflow-hidden">
-        <a
-          class="text-[100px] aspect-square h-full w-auto text-center"
-          href="/">
-          {"<"}
-        </a>
-      </div>
+      <Controller></Controller>
     </>
   );
 }

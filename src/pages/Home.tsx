@@ -13,6 +13,10 @@ export default function Home() {
           path: "/send",
         },
         {
+          label: <Text path="help" />,
+          path: "/help",
+        },
+        {
           label: <Text path="receive" />,
           path: "/receive",
         },
