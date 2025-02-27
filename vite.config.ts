@@ -20,8 +20,6 @@ export default defineConfig({
 		}),
 	],
 	define: {
-		date: {
-			value: new Date().toUTCString(),
-		},
+		__BUILD_TIME__: JSON.stringify(new Date().toUTCString()),
 	},
 });
