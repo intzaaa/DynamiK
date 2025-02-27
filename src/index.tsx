@@ -9,15 +9,24 @@ import setupI18n from "./utils/i18n";
 import Sender from "./pages/Sender";
 import Receiver from "./pages/Receiver";
 
+import zxingWasmFilePath from "zxing-wasm/full/zxing_full.wasm?url";
+import { prepareZXingModule } from "zxing-wasm";
+
+prepareZXingModule({
+  overrides: {
+    locateFile: () => zxingWasmFilePath,
+  },
+});
+
 const { Text, register } = setupI18n("en", {
   send: "Send",
   receive: "Receive",
   setup: "Setting up...",
-  waitCode: "Waiting for inputting code...",
-  tryConn: "Waiting for connection...",
-  receiveReady: "Ready to receive...",
-  connInterrupt: "Connection interrupted",
-  codePlaceholder: "Peering code",
+  waitCode: "Waiting for code...",
+  waitConn: "Waiting for connection...",
+  waitData: "Waiting for data...",
+  auto: "AUTO",
+  codeInput: "CODE",
 });
 
 register("zh", {
@@ -25,21 +34,21 @@ register("zh", {
   receive: "接收",
   setup: "正在设置...",
   waitCode: "等待输入代码...",
-  tryConn: "尝试连接...",
-  receiveReady: "已准备好接收...",
-  connInterrupt: "连接中断",
-  codePlaceholder: "配对码",
+  waitConn: "等待连接...",
+  waitData: "等待数据...",
+  auto: "自动",
+  codeInput: "代码",
 });
 
 register("de", {
   send: "Senden",
   receive: "Empfangen",
   setup: "Einrichtung...",
-  waitCode: "Warte auf Eingabe des Codes...",
-  tryConn: "Warte auf Verbindung...",
-  receiveReady: "Bereit zum Empfangen...",
-  connInterrupt: "Verbindung unterbrochen",
-  codePlaceholder: "Pairing-Code",
+  waitCode: "Warte auf Code...",
+  waitConn: "Warte auf Verbindung...",
+  waitData: "Warte auf Daten...",
+  auto: "AUTO",
+  codeInput: "CODE",
 });
 
 export { Text };

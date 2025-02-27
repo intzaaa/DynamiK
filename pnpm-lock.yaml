@@ -17,9 +17,6 @@ importers:
       '@vitejs/plugin-legacy':
         specifier: ^6.0.2
         version: 6.0.2(terser@5.39.0)(vite@6.1.1(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.39.0)(yaml@2.7.0))
-      base65536:
-        specifier: ^4.0.3
-        version: 4.0.3
       image-capture:
         specifier: ^0.4.0
         version: 0.4.0
@@ -39,9 +36,6 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0(@types/emscripten@1.40.0)
     devDependencies:
-      '@babel/plugin-transform-react-jsx-source':
-        specifier: ^7.25.9
-        version: 7.25.9(@babel/core@7.26.9)
       '@preact/preset-vite':
         specifier: ^2.9.3
         version: 2.10.1(@babel/core@7.26.9)(preact@10.26.2)(vite@6.1.1(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.39.0)(yaml@2.7.0))
@@ -495,12 +489,6 @@ packages:
 
   '@babel/plugin-transform-react-jsx-development@7.25.9':
     resolution: {integrity: sha512-9mj6rm7XVYs4mdLIpbZnHOYdpW42uoiBCTVowg7sP1thUOiANgMb4UtpRivR0pp5iL+ocvUv7X4mZgFRpJEzGw==}
-    engines: {node: '>=6.9.0'}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-
-  '@babel/plugin-transform-react-jsx-source@7.25.9':
-    resolution: {integrity: sha512-+iqjT8xmXhhYv4/uiYd8FNQsraMFZIfxVSqxxVSZP0WbbSAWvBXAul0m/zu+7Vv4O/3WtApy9pmaTMiumEZgfg==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
@@ -1204,9 +1192,6 @@ packages:
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
-
-  base65536@4.0.3:
-    resolution: {integrity: sha512-4VLZP1tOlE4YoZ2T+qlNXbbes3/YOo1HAVWt41uUOn9ZSIQlEhlxaCd5eL9hCz4nX3omfQgco/Tvi2eVgJFyNw==}
 
   before-after-hook@2.2.3:
     resolution: {integrity: sha512-NzUnlZexiaH/46WDhANlyR2bXRopNg4F/zuSA3OpZnllCUgRaOF2znDioDWrmbNVsuZk6l9pMquQB38cfBZwkQ==}
@@ -3118,11 +3103,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/plugin-transform-react-jsx-source@7.25.9(@babel/core@7.26.9)':
-    dependencies:
-      '@babel/core': 7.26.9
-      '@babel/helper-plugin-utils': 7.26.5
-
   '@babel/plugin-transform-react-jsx@7.25.9(@babel/core@7.26.9)':
     dependencies:
       '@babel/core': 7.26.9
@@ -3844,8 +3824,6 @@ snapshots:
       '@babel/core': 7.26.9
 
   balanced-match@1.0.2: {}
-
-  base65536@4.0.3: {}
 
   before-after-hook@2.2.3: {}
 

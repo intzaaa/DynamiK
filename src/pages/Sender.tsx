@@ -52,38 +52,27 @@ export default function Sender() {
   const currentPeer = signal<Peer | undefined>(undefined);
   const peerUrl = computed(() => (currentPeer.value ? receiver_url(currentPeer.value.id) : undefined));
   const peerUrlSvg = signal<string | undefined>(undefined);
-  const connCount = signal<number>(0);
+  const peerCount = signal<number>(0);
 
   effect(() => {
     if (currentPeer.value) {
       currentPeer.value.on("connection", (conn) => {
         conn.on("open", () => {
           console.info("Connected to", conn.peer);
-          connCount.value++;
+          peerCount.value++;
 
           const dispose = effect(() => {
             if (scannedData.value) {
-              conn.send(scannedData.value)?.then(() => {
-                console.info("Sent to", conn.peer);
-              });
-              conn.send(scannedData.value)?.then(() => {
-                console.info("Sent to", conn.peer);
-              });
+              conn.send(scannedData.value);
 
-              console.info("Sending to", conn.peer);
-              console.info("Sending to", conn.peer);
+              console.info("Send to", conn.peer);
             }
           });
 
-          conn.peerConnection.addEventListener("connectionstatechange", () => {
-            if (conn.peerConnection.connectionState !== "connected") {
-              conn.close();
+          conn.on("iceStateChanged", (state) => {
+            if (state === "disconnected" || state === "closed" || state === "failed") {
               dispose();
-              connCount.value--;
-
-              console.info("Closed", conn.peer);
-
-              console.info("Closed", conn.peer);
+              peerCount.value--;
             }
           });
         });
@@ -129,6 +118,7 @@ export default function Sender() {
 
   effect(() => {
     if (scannedData.value) {
+      navigator.vibrate([10, 5, 3]);
       alarm();
     }
   });
@@ -154,28 +144,32 @@ export default function Sender() {
     createSenderPeer().then(async (_peer) => {
       currentPeer.value = _peer;
 
-      const blob = (
-        await writeBarcode(peerUrl.value!, {
-          format: "QRCode",
-          ecLevel: "H",
-        })
-      ).image!;
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        peerUrlSvg.value = reader.result as string;
-      };
-      reader.readAsDataURL(blob);
+      peerUrlSvg.value = URL.createObjectURL(
+        new Blob(
+          [
+            (
+              await writeBarcode(peerUrl.value!, {
+                format: "QRCode",
+                ecLevel: "H",
+              })
+            ).svg,
+          ],
+          { type: "image/svg+xml" }
+        )
+      );
     });
 
     return () => {
-      effect(() => {
-        mediaStream.value?.getTracks().forEach((track) => track.stop());
+      mediaStream
+        .peek()
+        ?.getTracks()
+        .forEach((track) => track.stop());
 
-        currentPeer.value?.destroy();
+      peerUrlSvg.value && URL.revokeObjectURL(peerUrlSvg.value);
 
-        console.info("Destroyed");
-      });
+      currentPeer.peek()?.destroy();
+
+      console.info("Destroyed");
     };
   }, []);
 
@@ -195,30 +189,19 @@ export default function Sender() {
           {"<"}
         </a>
         <div class="h-full w-0 grow flex flex-col items-center justify-center">
-          <div class="w-full h-0 grow font-mono text-center flex flex-col items-center justify-center cursor-pointer">
+          <div
+            onClick={() => peerUrl.value && navigator.clipboard.writeText(peerUrl.value)}
+            class="h-0 grow select-none font-mono text-center flex flex-col items-center justify-center cursor-pointer">
             {computed(() =>
               currentPeer.value?.id ? (
                 <>
                   <div class="w-full h-full flex flex-row items-center justify-between">
                     <img
                       src={peerUrlSvg.value}
-                      style={{
-                        imageRendering: "pixelated",
-                      }}
                       class="h-full w-auto aspect-square"></img>
-                    <div class="text-[80px] overflow-clip px-4">{connCount}</div>
+                    <div class="text-[80px] overflow-clip">{peerCount}</div>
                   </div>
-                  <a
-                    class="text-xs"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-
-                      navigator.clipboard.writeText(e.currentTarget.href);
-                    }}
-                    href={peerUrl.value}>
-                    {currentPeer.value.id}
-                  </a>
+                  <div class="text-xs">{currentPeer.value.id}</div>
                 </>
               ) : (
                 <div class="text-4xl">

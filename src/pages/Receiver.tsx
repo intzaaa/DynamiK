@@ -19,13 +19,23 @@ const createReceiverPeer = () => {
 };
 
 export default function Receiver() {
-  const senderId = signal<string | undefined>(undefined);
+  const senderId = signal<string | undefined>(new URLSearchParams(location.search).get("id") ?? undefined);
   const peer = signal<Peer | undefined>(undefined);
   const currentConnection = signal<DataConnection | undefined>(undefined);
-  const connectionState = signal<"idle" | "failed" | "connected">("idle");
+  const isConnected = signal<boolean>(false);
   const dataUrl = signal<string | undefined>(undefined);
   let count = 0;
   const dataUrlSvg = signal<string | undefined>(undefined);
+
+  // effect(() => {
+  //   if (id.value) {
+  //     const search = new URLSearchParams(location.search);
+
+  //     search.set("id", id.value);
+
+  //     window.location.search = search.toString();
+  //   }
+  // });
 
   effect(() => {
     if (dataUrl.value) {
@@ -33,62 +43,51 @@ export default function Receiver() {
         format: "QRCode",
         ecLevel: "M",
       }).then((result) => {
+        count++;
+
+        alarm();
         dataUrlSvg.value && URL.revokeObjectURL(dataUrlSvg.value);
         dataUrlSvg.value = URL.createObjectURL(new Blob([result.svg], { type: "image/svg+xml" }));
-
-        setTimeout(() => {
-          count++;
-          alarm();
-        }, 10);
       });
     }
   });
 
   effect(() => {
     if (senderId.value && peer.value) {
-      if (currentConnection.peek()) {
-        console.info("Closing", currentConnection.peek()?.peer);
-        currentConnection.peek()?.close();
-      }
+      currentConnection.peek()?.close();
 
-      console.info("Connecting to", senderId.value);
-
-      const conn = peer.value.connect(senderId.value);
-      conn.on("open", () => {
-        connectionState.value = "connected";
-        console.info("Connected to", conn.peer);
+      const _conn = peer.value.connect(senderId.value);
+      _conn.on("open", () => {
+        isConnected.value = true;
+        console.info("Connected to", _conn.peer);
       });
-      conn.on("data", async (data: any) => {
+      _conn.on("data", async (data: any) => {
         dataUrl.value = String(data);
+
         console.info(data);
       });
-      conn.on("close", () => {
-        connectionState.value = "idle";
-        console.info("Closed", conn.peer);
-      });
-      conn.on("error", (err) => {
-        connectionState.value = "failed";
-        console.error(err);
+      _conn.on("close", () => {
+        currentConnection.value = undefined;
+        isConnected.value = false;
+
+        useLocation().route("/");
+        console.info("Disconnected");
       });
 
-      currentConnection.value = conn;
+      currentConnection.value = _conn;
     }
   });
 
   useEffect(() => {
-    senderId.value = new URLSearchParams(location.search).get("id") ?? undefined;
-
     createReceiverPeer().then((_peer) => {
       peer.value = _peer;
     });
 
     return () => {
-      effect(() => {
-        peer.value?.destroy();
-        dataUrlSvg.value && URL.revokeObjectURL(dataUrlSvg.value);
+      peer.peek()?.destroy();
+      dataUrlSvg.value && URL.revokeObjectURL(dataUrlSvg.value);
 
-        console.info("Destroyed");
-      });
+      console.info("Destroyed");
     };
   }, []);
 
@@ -96,24 +95,17 @@ export default function Receiver() {
     <>
       <div>
         <input
-          value={senderId}
+          value={senderId.value}
           onInput={(e) => (senderId.value = e.currentTarget.value)}
           autoFocus
           type="text"
           class="w-full h-24 text-center text-xl text-mono border-none outline-none bg-transparent"
-          placeholder={Text({ path: "codePlaceholder" }).raw}
+          placeholder={Text({ path: "codeInput" }).raw}
         />
       </div>
       <div
         onClick={() => {
-          if (connectionState.value === "failed") {
-            const { url, route } = useLocation();
-            route(url);
-          }
-
-          if (dataUrl.value) {
-            navigator.clipboard.writeText(dataUrl.value);
-          }
+          dataUrl.value && navigator.clipboard.writeText(dataUrl.value);
         }}
         class={`w-full h-0 grow text-4xl break-all font-mono p-2 overflow-clip dark:text-white flex flex-wrap flex-row items-center justify-between`}>
         {computed(() => {
@@ -122,18 +114,16 @@ export default function Receiver() {
               <img
                 src={dataUrlSvg.value}
                 alt={dataUrl.value}
-                class={`w-full h-full object-contain cursor-pointer ${count % 2 === 0 ? "object-right-bottom" : "object-left-top"} ${connectionState.value === "failed" ? "text-red-500" : ""}`}></img>
+                class={`w-full h-full object-contain cursor-pointer ${count % 2 === 0 ? "object-right-bottom" : "object-left-top"}`}></img>
             );
           } else if (!peer.value) {
             return <Text path="setup" />;
           } else if (!senderId.value) {
             return <Text path="waitCode" />;
-          } else if (connectionState.value === "idle") {
-            return <Text path="tryConn" />;
-          } else if (connectionState.value === "failed") {
-            return <Text path="connInterrupt" />;
+          } else if (!isConnected.value) {
+            return <Text path="waitConn" />;
           } else {
-            return <Text path="receiveReady" />;
+            return <Text path="waitData" />;
           }
         })}
       </div>
