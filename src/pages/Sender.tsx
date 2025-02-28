@@ -7,7 +7,6 @@ import { config } from "../utils/config";
 import { Text } from "..";
 import { alarm } from "../utils/alarm";
 import { receiver_url } from "../utils/receiver_url";
-import "image-capture";
 
 async function requestCamera(): Promise<Maybe<MediaStream>> {
   try {
