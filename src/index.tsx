@@ -54,6 +54,7 @@ const { Text, register } = setupI18n("en", {
   receiveReady: "Ready to receive...",
   connInterrupt: "Connection interrupted",
   codePlaceholder: "Peering code",
+  wechatWarn: "Sending in WeChat is not recommended.",
 });
 
 register("zh", {
@@ -83,6 +84,7 @@ register("zh", {
   receiveReady: "已准备好接收...",
   connInterrupt: "连接中断",
   codePlaceholder: "配对码",
+  wechatWarn: "不推荐在微信中发送。",
 });
 
 register("de", {
@@ -121,6 +123,7 @@ register("de", {
   receiveReady: "Bereit zum Empfangen...",
   connInterrupt: "Verbindung unterbrochen",
   codePlaceholder: "Pairing-Code",
+  wechatWarn: "Das Senden in WeChat wird nicht empfohlen.",
 });
 
 export { Text };

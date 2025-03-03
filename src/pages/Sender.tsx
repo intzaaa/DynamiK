@@ -7,6 +7,7 @@ import { config } from "../utils/config";
 import { Text } from "..";
 import { alarm } from "../utils/alarm";
 import { receiver_url } from "../utils/receiver_url";
+import { useLocation } from "preact-iso";
 
 async function requestCamera(): Promise<Maybe<MediaStream>> {
   try {
@@ -33,6 +34,14 @@ async function requestCamera(): Promise<Maybe<MediaStream>> {
 }
 
 const createSenderPeer = () => {
+  if (navigator.userAgent.toLowerCase().includes("wechat")) {
+    alert(
+      Text({
+        path: "wechatWarn",
+      }).raw
+    );
+  }
+
   const peer = new Peer(config);
 
   return new Promise<Peer>((resolve) => {
